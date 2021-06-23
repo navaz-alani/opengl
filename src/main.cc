@@ -6,11 +6,8 @@
 #include <string>
 #include <cstdlib>
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
-/*
-#include <glm/glm.hpp>
-using namespace glm;
-*/
 
 #include "setup.h"
 #include "shader/shader.h"
