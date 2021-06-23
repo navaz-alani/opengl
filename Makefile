@@ -5,6 +5,7 @@ LIBS=-lm -L/usr/X11R6/lib -lglfw -lglew
 CXX=g++
 CFLAGS=-Wall --std=c++14
 INCLUDES=-I/usr/X11R6/include -framework OpenGL # -framework Cocoa
+VENDOR=-Iinclude
 
 SRC_DIR=src
 BUILD_DIR=build
@@ -23,7 +24,7 @@ ${BUILD_DIR}/%.o: ${SRC_DIR}/%.cc
 	@echo "==========================="
 	@echo "compiling $<"
 	@mkdir -p "$(@D)"
-	${CXX} -c $< -o $@ ${CFLAGS}
+	${CXX} -c $< -o $@ ${CFLAGS} ${VENDOR}
 	@echo "done"
 
 .PHONY: clean
