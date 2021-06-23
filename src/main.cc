@@ -13,7 +13,7 @@
 using namespace glm;
 
 #include "setup.h"
-#include "shader/loader.h"
+#include "shader/shader.h"
 #include "buffer/index_buffer.h"
 #include "buffer/vertex_buffer.h"
 #include "vertex_array/vertex_array.h"
@@ -79,14 +79,11 @@ int main(void) {
   IndexBuffer ib{ indices, 6 };
 
   // install shaders
-  ShaderLoader loader{
+  Shader sh{{
     "resources/shaders/basic-vertex-shader.glsl",
     "resources/shaders/basic-fragment-shader.glsl"
-  };
-  LoaderStatus status = loader.CreateProgram();
-  status.log(true);
-  unsigned int shaderID = status.assetID;
-  glUseProgram(shaderID);
+  }};
+  sh.Bind();
 
   // loop
 

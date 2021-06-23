@@ -14,6 +14,11 @@ struct LoaderStatus : public Status {
   ~LoaderStatus() = default;
 };
 
+struct ShaderSource {
+  std::string vertexShaderFile;
+  std::string fragmentShaderFile;
+};
+
 // ShaderLoader takes names of files corresponding to vertex and fragment
 // shaders, compiles them and links them into a new program.
 class ShaderLoader {
@@ -22,6 +27,7 @@ class ShaderLoader {
 
 public:
   ShaderLoader(const std::string vertexShaderFile, const std::string fragShaderFile);
+  ShaderLoader(const ShaderSource &src);
 
   // CreateProgram compiles and links the vertex and fragment shaders into a new
   // openGL program object, whose handle is stored in the `assetID` field of the

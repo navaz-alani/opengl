@@ -62,6 +62,10 @@ void compileShader(
   status->assetID = shaderID;
 }
 
+ShaderLoader::ShaderLoader(const ShaderSource &src)
+  : m_vertexShaderFile{ src.vertexShaderFile }, m_fragShaderFile{ src.fragmentShaderFile }
+{}
+
 ShaderLoader::ShaderLoader(
   const std::string vertexShaderFile,
   const std::string fragShaderFile
