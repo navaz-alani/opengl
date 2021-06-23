@@ -9,11 +9,15 @@ VENDOR=-Iinclude
 
 SRC_DIR=src
 BUILD_DIR=build
+VENDOR_DIR=include
 
 SRC_FILES=$(shell echo ${SRC_DIR}/*.cc ${SRC_DIR}/**/*.cc)
 OBJ_FILES=$(SRC_FILES:${SRC_DIR}%.cc=${BUILD_DIR}%.o)
 
-${EXEC}: ${OBJ_FILES}
+VENOR_SRC=$(shell echo ${VENDOR_DIR}/*.cc ${VENDOR_DIR}/**/*.cc)
+VENDOR_OBJ=$(VENOR_SRC:${VENDOR_DIR}%.cc=${BUILD_DIR}%.o)
+
+${EXEC}: ${OBJ_FILES} ${VENDOR_OBJ}
 	@echo "==========================="
 	@echo "linking object files..."
 	@mkdir -p ${BUILD_DIR}
@@ -22,9 +26,16 @@ ${EXEC}: ${OBJ_FILES}
 
 ${BUILD_DIR}/%.o: ${SRC_DIR}/%.cc
 	@echo "==========================="
-	@echo "compiling $<"
+	@echo "compiling project source file '$<'"
 	@mkdir -p "$(@D)"
 	${CXX} -c $< -o $@ ${CFLAGS} ${VENDOR}
+	@echo "done"
+
+${BUILD_DIR}/%.o: ${VENDOR_DIR}/%.cc
+	@echo "==========================="
+	@echo "compiling vendor source file '$<'"
+	@mkdir -p "$(@D)"
+	${CXX} -c $< -o $@ ${CFLAGS}
 	@echo "done"
 
 .PHONY: clean
