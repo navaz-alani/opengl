@@ -6,17 +6,18 @@
 #include <string>
 #include <cstdlib>
 
-#include <GL/glew.h>
 #include <GLFW/glfw3.h>
+/*
 #include <glm/glm.hpp>
-
 using namespace glm;
+*/
 
 #include "setup.h"
 #include "shader/shader.h"
 #include "buffer/index_buffer.h"
 #include "buffer/vertex_buffer.h"
 #include "vertex_array/vertex_array.h"
+#include "renderer/renderer.h"
 
 void GLClearError() { while (glGetError() != GL_NO_ERROR); }
 
@@ -77,24 +78,18 @@ int main(void) {
   va.AddBuffer(vbuff, layout);
   // setup index buffer
   IndexBuffer ib{ indices, 6 };
-
   // install shaders
   Shader sh{{
     "resources/shaders/basic-vertex-shader.glsl",
     "resources/shaders/basic-fragment-shader.glsl"
   }};
-  sh.Bind();
 
   // loop
+  Renderer r;
 
   while (!glfwWindowShouldClose(window)) {
-    // clear the screen
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    GLClearError();
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-    GLCheckError();
-
+    r.Clear();
+    r.Draw(va, ib, sh);
     // swap buffers and poll for events
     glfwSwapBuffers(window);
     glfwPollEvents();

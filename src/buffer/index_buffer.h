@@ -3,10 +3,13 @@
 
 #include "buffer.h"
 
-class IndexBuffer : Buffer {
+class IndexBuffer : public Buffer {
+  unsigned int m_count;
 public:
   IndexBuffer(const unsigned int *indices, unsigned int count);
   ~IndexBuffer() = default;
+
+  inline unsigned int count() const { return m_count; }
 };
 
 #endif
