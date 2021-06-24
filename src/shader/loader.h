@@ -1,7 +1,3 @@
-#ifndef GL_SILENCE_DEPRECATION
-#define GL_SILENCE_DEPRECATION
-#endif
-
 #ifndef __SHADER_LOADER_H__
 #define __SHADER_LOADER_H__
 

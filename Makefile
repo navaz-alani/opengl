@@ -3,7 +3,7 @@ EXEC=opengl
 
 LIBS=-lm -L/usr/X11R6/lib -lglfw -lglew
 CXX=g++
-CXXFLAGS=-Wall --std=c++14 -O -g -MMD
+CXXFLAGS=-Wall --std=c++14 -O -g -MMD -DGL_SILENCE_DEPRECATION
 INCLUDES=-I/usr/X11R6/include -framework OpenGL # -framework Cocoa
 VENDOR=-Iinclude
 
