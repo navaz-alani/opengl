@@ -10,22 +10,13 @@
 #include <GLFW/glfw3.h>
 
 #include "setup.h"
+#include "errors.h"
 #include "shader/shader.h"
 #include "buffer/index_buffer.h"
 #include "buffer/vertex_buffer.h"
 #include "vertex_array/vertex_array.h"
 #include "renderer/renderer.h"
-
-void GLClearError() { while (glGetError() != GL_NO_ERROR); }
-
-void GLCheckError() {
-  while (GLenum err = glGetError()) {
-    std::cerr << "[OpenGL Error] (code 0x"
-              << std::hex << err << ") "
-              << gluErrorString(err)
-              << "\n";
-  }
-}
+#include "textures/texture.h"
 
 int main(void) {
   if (setup() != 0) {
@@ -54,11 +45,11 @@ int main(void) {
 
   // buffer setup
 
-  float positions[8] = {
-    -0.5f, -0.5f,
-     0.5f, -0.5f,
-     0.5f,  0.5f,
-    -0.5f,  0.5f,
+  float vertices[] = {
+    -0.5f, -0.5f, 0.0f, 0.0f,
+     0.5f, -0.5f, 1.0f, 0.0f,
+     0.5f,  0.5f, 1.0f, 1.0f,
+    -0.5f,  0.5f, 0.0f, 1.0f,
   };
 
   unsigned int indices[] = {
@@ -66,13 +57,19 @@ int main(void) {
     2, 3, 0,
   };
 
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  GLClearError();
   // setup vertex array
   VertexArray va;
   // setup vertex buffer + its layout
-  VertexBuffer vbuff{ positions, 4*2*sizeof(float) };
+  VertexBuffer vbuff{ vertices, 4*4*sizeof(float) };
   BufferLayout layout;
   layout.PushField(2);
+  layout.PushField(2);
   va.AddBuffer(vbuff, layout);
+  GLCheckError();
   // setup index buffer
   IndexBuffer ib{ indices, 6 };
   // install shaders
@@ -80,6 +77,16 @@ int main(void) {
     "resources/shaders/basic-vertex-shader.glsl",
     "resources/shaders/basic-fragment-shader.glsl"
   }};
+  sh.Bind();
+  GLCheckError();
+  // setup textures
+  Texture t{ "resources/textures/OpenGL_logo.png" };
+  t.Bind();
+  GLCheckError();
+
+  VectorUniform<int> textureUniform{ 1, 0 };
+  sh.setVectorUniform("u_Texture", &textureUniform);
+  GLCheckError();
 
   // loop
   Renderer r;
@@ -87,6 +94,7 @@ int main(void) {
   while (!glfwWindowShouldClose(window)) {
     r.Clear();
     r.Draw(va, ib, sh);
+    GLCheckError();
     // swap buffers and poll for events
     glfwSwapBuffers(window);
     glfwPollEvents();
