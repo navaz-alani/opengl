@@ -23,9 +23,6 @@ public:
 
 template<>
 inline void VectorUniform<float>::setToLocation(int location) {
-  GLClearError();
-  std::cout << "location " << location << "\n";
-  std::cout << "count" << count << "\n";
   switch (count) {
     case 1: { glUniform1f(location, v0); break; }
     case 2: { glUniform2f(location, v0, v1); break; }
@@ -33,7 +30,6 @@ inline void VectorUniform<float>::setToLocation(int location) {
     case 4: { glUniform4f(location, v0, v1, v2, v3); break; }
     default: { assert(false); }
   }
-  GLCheckError();
 }
 
 template<>

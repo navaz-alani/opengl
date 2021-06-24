@@ -17,10 +17,10 @@ public:
   void Unbind() const;
 
   template<typename T>
-  void setVectorUniform(const std::string name, VectorUniform<T> *u) {
+  void setVectorUniform(const char *name, VectorUniform<T> *u) {
     // TODO: uniform location cache
 
-    int location = glGetUniformLocation(m_glID, name.c_str());
+    int location = glGetUniformLocation(m_glID, name);
     if (location == -1) return;
     u->setToLocation(location);
   }
