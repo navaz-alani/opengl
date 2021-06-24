@@ -14,14 +14,16 @@ VENDOR_DIR=include
 SRC_FILES=$(shell echo ${SRC_DIR}/*.cc ${SRC_DIR}/**/*.cc)
 OBJ_FILES=$(SRC_FILES:${SRC_DIR}%.cc=${BUILD_DIR}%.o)
 
-VENOR_SRC=$(shell echo ${VENDOR_DIR}/*.cc ${VENDOR_DIR}/**/*.cc)
-VENDOR_OBJ=$(VENOR_SRC:${VENDOR_DIR}%.cc=${BUILD_DIR}%.o)
+# we expect and assume that the vendor source code to be organized into
+# subdirectories within the VENDOR_DIR directory;
+VENDOR_SRC=$(shell echo ${VENDOR_DIR}/**/*.cc)
+VENDOR_OBJ=$(VENDOR_SRC:${VENDOR_DIR}%.cc=${BUILD_DIR}%.o)
 
 ${EXEC}: ${OBJ_FILES} ${VENDOR_OBJ}
 	@echo "==========================="
 	@echo "linking object files..."
 	@mkdir -p ${BUILD_DIR}
-	${CXX} -o "${BUILD_DIR}/${EXEC}" ${OBJ_FILES} ${LIBS} ${INCLUDES}
+	${CXX} -o "${BUILD_DIR}/${EXEC}" ${OBJ_FILES} ${VENDOR_OBJ} ${LIBS} ${INCLUDES}
 	@echo "done"
 
 ${BUILD_DIR}/%.o: ${SRC_DIR}/%.cc
