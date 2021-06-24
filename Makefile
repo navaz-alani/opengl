@@ -3,7 +3,7 @@ EXEC=opengl
 
 LIBS=-lm -L/usr/X11R6/lib -lglfw -lglew
 CXX=g++
-CFLAGS=-Wall --std=c++14
+CXXFLAGS=-Wall --std=c++14 -O -g -MMD
 INCLUDES=-I/usr/X11R6/include -framework OpenGL # -framework Cocoa
 VENDOR=-Iinclude
 
@@ -13,6 +13,7 @@ VENDOR_DIR=include
 
 SRC_FILES=$(shell echo ${SRC_DIR}/*.cc ${SRC_DIR}/**/*.cc)
 OBJ_FILES=$(SRC_FILES:${SRC_DIR}%.cc=${BUILD_DIR}%.o)
+SRC_DEPS=${OBJ_FILES:.o=.d}
 
 # we expect and assume that the vendor source code to be organized into
 # subdirectories within the VENDOR_DIR directory;
@@ -26,19 +27,21 @@ ${EXEC}: ${OBJ_FILES} ${VENDOR_OBJ}
 	${CXX} -o "${BUILD_DIR}/${EXEC}" ${OBJ_FILES} ${VENDOR_OBJ} ${LIBS} ${INCLUDES}
 	@echo "done"
 
-${BUILD_DIR}/%.o: ${SRC_DIR}/%.cc
+${BUILD_DIR}/%.o: ${SRC_DIR}/%.cc Makefile
 	@echo "==========================="
 	@echo "compiling project source file '$<'"
 	@mkdir -p "$(@D)"
-	${CXX} -c $< -o $@ ${CFLAGS} ${VENDOR}
+	${CXX} -c $< -o $@ ${CXXFLAGS} ${VENDOR}
 	@echo "done"
 
-${BUILD_DIR}/%.o: ${VENDOR_DIR}/%.cc
+${BUILD_DIR}/%.o: ${VENDOR_DIR}/%.cc Makefile
 	@echo "==========================="
 	@echo "compiling vendor source file '$<'"
 	@mkdir -p "$(@D)"
-	${CXX} -c $< -o $@ ${CFLAGS}
+	${CXX} -c $< -o $@ ${CXXFLAGS}
 	@echo "done"
+
+-include ${SRC_DEPS}
 
 .PHONY: clean
 
