@@ -2,16 +2,9 @@
 #define __STATUS_H__
 
 #include <string>
+#include "../logger/logger.h"
 
-// StatusType is used to categorize a Status.
-enum StatusType {
-  Info = 0, Debug = 1, Error = 2,
-};
-
-// Status prefixes for the log messages.
-static const char *StatusTypeToString[3] = {
-  "[INFO]", "[DEBUG]", "[ERROR]"
-};
+typedef LoggerState StatusType;
 
 const std::string EmptyStatus = "";
 

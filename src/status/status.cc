@@ -21,8 +21,9 @@ bool Status::isError() { return m_type == StatusType::Error; }
 void Status::log(bool errFatal) {
   // we don't log if we don't have a valid message string
   if (!m_logMsg.size()) return;
-  std::cerr << StatusTypeToString[m_type] << ": " << m_logMsg << '\n';
-  if (m_type == StatusType::Error && errFatal) exit(1); // treat errors as fatal
+  Logger log;
+  log << m_type << m_logMsg;
+  if (m_type == LoggerState::Error && errFatal) exit(1); // treat errors as fatal
 }
 
 void Status::log() { log(false); }
