@@ -18,13 +18,17 @@ inline void GLCheckError() {
 
 // a context string describes the context where the error occurred.
 inline void GLCheckError(const std::string &context) {
+  bool hasErrored = false;
   while (GLenum err = glGetError()) {
+    if (!hasErrored && (hasErrored = true))
+      std::cerr << "Error(s) in context: '" << context << "\n";
     std::cerr << "[OpenGL Error] (code 0x"
               << std::hex << err << ", ctx:"
               << context << ") "
               << gluErrorString(err)
               << "\n";
   }
+  hasErrored && std::cerr << "DONE\n";
 }
 
 #endif

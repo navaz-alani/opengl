@@ -11,12 +11,15 @@
 #include "setup.h"
 #include "errors.h"
 #include "shader/shader.h"
+#include "shader/vector_uniform.h"
+#include "shader/matrix_uniform.h"
 #include "buffer/index_buffer.h"
 #include "buffer/vertex_buffer.h"
 #include "vertex_array/vertex_array.h"
 #include "renderer/renderer.h"
 #include "textures/texture.h"
 #include "chrono/chrono.h"
+
 
 int main(void) {
   if (setup() != 0) {
@@ -40,23 +43,26 @@ int main(void) {
   }
   glewExperimental=true; // Needed in core profile
   // Ensure we can capture the escape key being pressed below
-  //glfwSwapInterval(1);
+  glfwSwapInterval(1);
   //glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
   // buffer setup
 
   float rect1[] = {
-    -0.5f, -0.5f,
-     0.5f, -0.5f,
-     0.5f,  0.5f,
-    -0.5f,  0.5f
+    -0.5f, -0.5f,  0.0f,  0.0f,
+     0.5f, -0.5f,  1.0f,  0.0f,
+     0.5f,  0.5f,  1.0f,  1.0f,
+    -0.5f,  0.5f,  0.0f,  1.0f
   };
+  const float delta dx = 0.01;
+  /*
   float rect2[] = {
     -0.25f, -0.25f,
      0.25f, -0.25f,
      0.25f,  0.25f,
     -0.25f,  0.25f
   };
+  */
 
   unsigned int indices[] = {
     0, 1, 2,
@@ -71,38 +77,48 @@ int main(void) {
   GLClearError();
 
   // setup vertex arrays
-  VertexArray r1, r2;
+  VertexArray r1;//, r2;
   // setup vertex buffer
-  VertexBuffer vbuff1{ rect1, 4*2*sizeof(float) },
-               vbuff2{ rect2, 4*2*sizeof(float) };
+  VertexBuffer vbuff1{ rect1, 4*4*sizeof(float) };//, vbuff2{ rect2, 4*2*sizeof(float) };
   // setup layout
   BufferLayout layout;
   layout.PushField(2);
+  layout.PushField(2);
   // bind the buffers to the separate vertex arrays
   r1.AddBuffer(vbuff1, layout);
-  r2.AddBuffer(vbuff2, layout);
-  GLCheckError();
+  //r2.AddBuffer(vbuff2, layout);
+  GLCheckError("vertex layout setup");
 
   // setup index buffer
   IndexBuffer ib{ indices, 6 };
+
   // install shaders
   Shader sh{{
-    "resources/shaders/solid-color-vertex-shader.glsl",
-    "resources/shaders/solid-color-fragment-shader.glsl"
+    "resources/shaders/basic-vertex-shader.glsl",
+    "resources/shaders/basic-fragment-shader.glsl"
   }};
-  GLCheckError();
+  GLCheckError("shader compilation and program creation");
 
   // setup color uniforms
   VectorUniform<float> rect1Color{ 4, 1.0f, 0.0f, 1.0f, 1.0f };
   VectorUniform<float> rect2Color{ 4, 1.0f, 1.0f, 1.0f, 0.5f };
-  GLCheckError();
 
+  Texture t{ "resources/textures/OpenGL_logo.png" };
+  t.Bind();
+  GLCheckError("texture init and binding");
 
   sh.Bind();
+  /*
   const char *colorUniform = "u_Color";
-  sh.setVectorUniform(colorUniform, &rect1Color);
+  sh.setUniform(colorUniform, rect1Color);
+  */
+  glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+  MatrixUniform<glm::mat4> mvp{ 4, proj };
+  sh.setUniform("u_MVP", mvp);
 
-  GLCheckError();
+  VectorUniform<int> tex{ 1, 0 };
+  sh.setUniform("u_Texture", tex);
+  GLCheckError("setting uniforms");
 
   // loop
   Renderer r;
@@ -112,19 +128,23 @@ int main(void) {
 
   while (!glfwWindowShouldClose(window)) {
     r.Clear();
+    r.Draw(r1, ib, sh);
 
-    sh.setVectorUniform(colorUniform, &rect1Color);
+    GLCheckError("draw call error");
+    /*
+    sh.setVectorUniform(colorUniform, rect1Color);
     GLCheckError();
     r.Draw(r1, ib, sh);
     GLCheckError();
 
-    ++frameCount;
 
-    sh.setVectorUniform(colorUniform, &rect2Color);
+    sh.setVectorUniform(colorUniform, rect2Color);
     GLCheckError();
     r.Draw(r2, ib, sh);
     GLCheckError();
+    */
 
+    ++frameCount;
     // swap buffers and poll for events
     glfwSwapBuffers(window);
     glfwPollEvents();
