@@ -3,9 +3,13 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-int setup() {
+#include "logger/logger.h"
+
+int setupGLFW() {
+  Logger log;
+
   if (!glfwInit()) {
-    std::cerr << "Failed to initialize GLFW\n";
+    log << LoggerState::Error << "failed to initialize GLFW";
     return -1;
   }
   // 4x antialiasing
@@ -19,6 +23,22 @@ int setup() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
   glewExperimental=true; // Needed in core profile
+
+  log << LoggerState::Info << "initialized GLFW";
   return 0;
 }
 
+int setupGLEW() {
+  Logger log;
+
+  if (glewInit() != 0) {
+    log << LoggerState::Error << "failed to initialize GLEW";
+    return 1;
+  }
+  glewExperimental=true; // Needed in core profile
+  glfwSwapInterval(1);   // match monitor refresh rate
+  // Ensure we can capture the escape key being pressed below
+  //glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+  log << LoggerState::Info << "initialized GLEW";
+  return 0;
+}
