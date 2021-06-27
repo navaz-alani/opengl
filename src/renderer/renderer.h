@@ -4,6 +4,7 @@
 #include "../vertex_array/vertex_array.h"
 #include "../buffer/index_buffer.h"
 #include "../shader/shader.h"
+#include "../shader/uniform.h"
 
 class Renderer {
 public:

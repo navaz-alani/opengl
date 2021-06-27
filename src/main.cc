@@ -1,13 +1,12 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
-
+// OpenGL related headers
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
+// abstractions
 #include "setup.h"
 #include "errors.h"
 #include "shader/shader.h"
@@ -21,6 +20,7 @@
 #include "chrono/chrono.h"
 #include "logger/logger.h"
 #include "window.h"
+#include "model-parser/obj-parser.h"
 
 int main(void) {
   Logger log;
@@ -34,60 +34,58 @@ int main(void) {
 
   setupGLEW();
 
-  // buffer setup
-  float rect1[] = {
-    -0.5f, -0.5f,  0.0f,  0.0f,
-     0.5f, -0.5f,  1.0f,  0.0f,
-     0.5f,  0.5f,  1.0f,  1.0f,
-    -0.5f,  0.5f,  0.0f,  1.0f
-  };
-
-  unsigned int indices[] = {
-    0, 1, 2,
-    2, 3, 0,
-  };
-
   // setup blending
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  GLClearError();
+  ObjParser parser;
+  Object3D model = parser.parse("resources/objects/blender.obj");
+  if (parser.isParseError()) {
+    log << LoggerState::Error << "object file parse failed";
+    log << LoggerState::Error << parser.getParseError();
+    return 1;
+  }
+  const unsigned int numVertices = model.vertexPositions.size();
+  log << LoggerState::Info << "object file parsed";
 
-  // setup vertex arrays
   VertexArray rect;
-  // setup vertex buffer
-  VertexBuffer vbuff1{ rect1, 4*4*sizeof(float) };
-  // setup layout
+  VertexBuffer vbuff{
+    (float *)model.vertexPositions.data(),
+    (unsigned int)(numVertices*sizeof(float))*3
+  };
+  GLCheckError("vertex buffer");
+  log << LoggerState::Info << "vertex buffer setup completed";
+
   BufferLayout layout;
-  layout.PushField(2);
-  layout.PushField(2);
-  // bind the buffers to the separate vertex arrays
-  rect.AddBuffer(vbuff1, layout);
-  GLCheckError("vertex layout setup");
+  layout.PushField(3);
+  rect.AddBuffer(vbuff, layout);
+  GLCheckError("vertex array binding");
+  log << LoggerState::Info << "vertex array setup completed";
 
-  // setup index buffer
-  IndexBuffer ib{ indices, 6 };
+  IndexBuffer ib{
+    (unsigned int *)model.faces.data(),
+    (unsigned int)model.faces.size()*3
+  };
+  GLCheckError("index buffer");
+  log << LoggerState::Info << "index buffer setup completed";
 
-  // install shaders
   Shader sh{{
     "resources/shaders/basic-vertex-shader.glsl",
     "resources/shaders/basic-fragment-shader.glsl"
   }};
-  GLCheckError("shader compilation and program creation");
+  GLCheckError("shader");
+  log << LoggerState::Info << "shader setup completed";
 
-  Texture t{ "resources/textures/OpenGL_logo.png" };
-  t.Bind();
-  GLCheckError("texture init and binding");
+  glm::mat4 rot = glm::mat4(1.0f);
+  rot = glm::translate(rot, glm::vec3(0.0, 0.0, 0.0));
+  rot = glm::rotate(rot, glm::radians(45.0f), glm::vec3(1.0, 0.0, 0.0));
+  rot = glm::rotate(rot, glm::radians(45.0f), glm::vec3(0.0, 1.0, 0.0));
+  MatrixUniform<glm::mat4> rotMatrix{ "u_Rotation", 4, rot };
 
   sh.Bind();
-
-  glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
-  MatrixUniform<glm::mat4> mvp{ 4, proj };
-  sh.setUniform("u_MVP", mvp);
-
-  VectorUniform<int> tex{ 1, 0 };
-  sh.setUniform("u_Texture", tex);
-  GLCheckError("setting uniforms");
+  sh.setUniform(&rotMatrix);
+  GLCheckError("setting uniform");
+  log << LoggerState::Info << "uniforms set";
 
   // loop
   Renderer r;

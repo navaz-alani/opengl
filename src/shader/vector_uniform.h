@@ -13,8 +13,8 @@ class VectorUniform : public Uniform {
   T v0, v1, v2, v3;
 
 public:
-  VectorUniform(const unsigned char count, T v0 = 0, T v1 = 0, T v2 = 0, T v3 = 0)
-    : count{ count }, v0{ v0 }, v1{ v1 }, v2{ v2 }, v3{ v3 }
+  VectorUniform(const char *name, const unsigned char count, T v0 = 0, T v1 = 0, T v2 = 0, T v3 = 0)
+    : Uniform(name), count{ count }, v0{ v0 }, v1{ v1 }, v2{ v2 }, v3{ v3 }
   {};
 
   inline void setToLocation(const int location = -1) override;

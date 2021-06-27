@@ -45,15 +45,15 @@ class MatrixUniform : public Uniform {
 
 public:
   // initialize a square matrix
-  MatrixUniform(unsigned char numRowsCols, const T &data)
-    : m_rows{ numRowsCols }, m_cols{ numRowsCols }, m_data{ data } {
+  MatrixUniform(const char *name, unsigned char numRowsCols, const T &data)
+    : Uniform(name), m_rows{ numRowsCols }, m_cols{ numRowsCols }, m_data{ data } {
     assert((2 <= numRowsCols && numRowsCols <= 4));
     determineUniformSetter();
   }
 
   // initialize a rectangular matrix
-  MatrixUniform(unsigned char numRows, unsigned char numCols, const T &data)
-    : m_rows{ numRows }, m_cols{ numCols }, m_data{ data } {
+  MatrixUniform(const char *name, unsigned char numRows, unsigned char numCols, const T &data)
+    : Uniform(name), m_rows{ numRows }, m_cols{ numCols }, m_data{ data } {
     assert((2 <= numRows && numRows <= 4) && (2 <= numCols && numCols <= 4));
     determineUniformSetter();
   }
