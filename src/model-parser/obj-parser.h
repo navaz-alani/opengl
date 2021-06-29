@@ -5,16 +5,14 @@
 #include <string>
 #include <vector>
 
-// a 3D coordinate position
-struct position_3d_t { float x, y, z; };
-// vertex indices defining a 3D plane
-struct face_t        { unsigned int v0, v1, v2; };
+#include "object.h"
 
-// A parsed 3D object.
-struct Object3D {
-  std::vector<position_3d_t> vertexPositions;
-  std::vector<face_t>        faces;
-};
+static const char *DECL_INVALID  = "_";
+static const char *DECL_COMMENT  = "#";
+static const char *DECL_VERTEX   = "v";
+static const char *DECL_FACE     = "f";
+static const char *DECL_UV_COORD = "vt";
+static const char *DECL_V_NORM   = "vn";
 
 const Object3D emptyObj;
 
@@ -23,17 +21,23 @@ const Object3D emptyObj;
 //
 // Lines with the following format declare a vertex position.
 //
-// v <float> <float> <float>
+// v <x_coord:float> <y_coord:float> <z_coord:float>
 //
 // Lines with the following format declare a triangle using the line numbers of
 // vertex position declarations.
 //
-// f <line_no> <line_no> <line_no>
+// f <vertex_no:uint> <vertex_no:uint> <vertex_no:uint>
 //
-// An additional constraint is that all faces must be defined AFTER all vertex
-// positions have been defined. This is to enable error checking.
+// Lines with the following formal declare a normal vector.
 //
-// This object contains an internal error state for parsing operations.
+// n <x_coord:float> <y_coord:float> <z_coord:float>
+//
+// Lines with the following format declare a UV/texture coordinate
+//
+// vt <x_coord:float> <y_coord:float>
+//
+// If a line begins with a single '#' character, the entire line is considered
+// to be a comment and therefore ignored while parsing.
 class ObjParser {
   bool        m_parseError;
   std::string m_errorMsg;

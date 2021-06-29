@@ -10,6 +10,7 @@ class Renderer {
 public:
   void Clear() const;
   void Draw(const VertexArray &va, const IndexBuffer &ib, const Shader &sh) const;
+  void Draw(const VertexArray &va, unsigned int count, const Shader &sh) const;
 };
 
 #endif

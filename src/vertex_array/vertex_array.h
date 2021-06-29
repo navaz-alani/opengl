@@ -14,7 +14,11 @@ public:
   void Bind() const;
   void Unbind() const;
 
-  void AddBuffer(const VertexBuffer &vb, const BufferLayout &layout);
+  void AddBuffer(
+    const VertexBuffer &vb,
+    const BufferLayout &layout,
+    const unsigned int attribOffset = 0
+  );
 };
 
 #endif

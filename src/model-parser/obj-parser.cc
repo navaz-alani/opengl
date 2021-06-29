@@ -1,10 +1,66 @@
 #include "obj-parser.h"
 
 #include <fstream>
+#include <sstream>
 
 ObjParser::ObjParser()
   : m_parseError{ false }, m_errorMsg{ "" }
 {}
+
+/*
+ * LINE PARSERS
+ */
+
+position_3d_t parseVertex(std::istream &in) {
+  position_3d_t vpos;
+  in >> vpos.x; in >> vpos.y; in >> vpos.z;
+  return vpos;
+}
+
+void parseFace(
+  std::istream &in,
+  std::vector<unsigned int> &vertexIndices,
+  std::vector<unsigned int> &texIndices,
+  std::vector<unsigned int> &normalIndices
+) {
+  for (unsigned char i = 0; i < 3; ++i) {
+    std::string facePart; in >> facePart;
+    unsigned int vIdx{ 0 }, uvIdx{ 0 }, nIdx{ 0 };
+    char c;
+    std::istringstream faceIn{ facePart };
+    faceIn >> vIdx;
+    if (faceIn.eof()) goto loop_end;
+    faceIn >> c; // reads '/'
+    faceIn >> c;
+    if (c != '/') {
+        faceIn.putback(c);
+        faceIn >> uvIdx;
+        if (faceIn.eof()) goto loop_end;
+        faceIn >> c; // reads '/'
+        faceIn >> nIdx;
+    } else faceIn >> nIdx;
+loop_end:
+    if (vIdx != 0)  vertexIndices.push_back(--vIdx);
+    if (uvIdx != 0) texIndices.   push_back(--uvIdx);
+    if (nIdx != 0)  normalIndices.push_back(--nIdx);
+  }
+}
+
+tex_2d_t parseTexCoord(std::istream &in) {
+  tex_2d_t tc;
+  in >> tc.x; in >> tc.y;
+  return tc;
+}
+
+v_normal_t parseNormal(std::istream &in) {
+  v_normal_t norm;
+  in >> norm.x; in >> norm.y; in >> norm.z;
+  return norm;
+}
+
+/*
+ * OBJECT FILE PARSER
+ */
 
 Object3D ObjParser::parse(const std::string &objFile) {
   std::ifstream objf{ objFile };
@@ -14,65 +70,39 @@ Object3D ObjParser::parse(const std::string &objFile) {
   }
 
   Object3D obj;
-
-  unsigned char idx = 0;
-  char declType; float posCoord; unsigned int vertexIdx;
-  position_3d_t vertex{0};
-  face_t face{0};
+  std::string declType{ DECL_INVALID };
   while (objf.good()) {
-    if (idx == 0) {
-      // read in the type of the declaration
-      objf >> declType;
-      if (!(declType == 'v' || declType == 'f')) {
-        m_parseError = true;
-        m_errorMsg = std::string("unknown declaration type ") + declType;
-        return emptyObj;
-      }
+    objf >> declType;
+    if (objf.eof()) break;
+    if (declType == DECL_COMMENT) {
+      objf.ignore('\n');
+    } else if (declType == DECL_VERTEX) {
+      obj.vertexPositions.push_back(parseVertex(objf));
+    } else if (declType == DECL_FACE) {
+      parseFace(objf, obj.vertexIndices, obj.texIndices, obj.normalIndices);
+    } else if (declType == DECL_UV_COORD) {
+      obj.texCoords.push_back(parseTexCoord(objf));
+    } else if (declType == DECL_V_NORM) {
+      obj.normals.push_back(parseNormal(objf));
     } else {
-      // read in the appropriate value and update the loop parse variable
-      // (vertex or face) being parsed
-      if (declType == 'v') {
-        objf >> posCoord;
-        if (idx == 1)      vertex.x = posCoord;
-        else if (idx == 2) vertex.y = posCoord;
-        else               vertex.z = posCoord;
-      } else {
-        objf >> vertexIdx;
-        // since the obj files refer to vertices as 1-indexed, we have to adjust
-        --vertexIdx;
-        if (idx == 1)      face.v0 = vertexIdx;
-        else if (idx == 2) face.v1 = vertexIdx;
-        else               face.v2 = vertexIdx;
-      }
-      // check if we have finished parsing the line
-      if (idx == 3) {
-        // we add to the object and reset the loop parse variable
-        if (declType == 'v') {
-          obj.vertexPositions.emplace_back(vertex);
-          vertex = {0}; 
-        } else {
-          obj.faces.emplace_back(face);
-          face = {0};
-        }
-      }
+      m_parseError = true;
+      m_errorMsg = std::string("unknown declaration type ") + declType;
+      return emptyObj;
     }
-    idx = (++idx) % 4;
+    declType = DECL_INVALID;
   }
 
   /*
-  for (unsigned int i = 0; i < obj.vertexPositions.size(); ++i) {
-    auto v = obj.vertexPositions[i];
+  for (auto v : obj.vertexPositions) {
     std::cout << "{"
               << v.x << " "
               << v.y << " "
               << v.z << "}\n";
   }
-  for (unsigned int i = 0; i < obj.faces.size(); ++i) {
-    auto v = obj.faces[i];
+  for (auto v : obj.texCoords) {
     std::cout << "{"
-              << v.v0 << " "
-              << v.v1 << " "
-              << v.v2 << "}\n";
+              << v.x << " "
+              << v.y << "}\n";
   }
   */
 

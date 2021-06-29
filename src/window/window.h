@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "logger/logger.h"
+#include "../logger/logger.h"
 
 class Window {
   GLFWwindow *m_win;
@@ -30,6 +30,10 @@ public:
   inline void makeCurrent() { glfwMakeContextCurrent(m_win); }
   inline bool shouldClose() { return glfwWindowShouldClose(m_win); }
   inline void swapBuffers() { glfwSwapBuffers(m_win); }
+
+  void setKeyCallback(GLFWkeyfun cb) {
+    glfwSetKeyCallback(m_win, cb);
+  }
 };
 
 #endif
