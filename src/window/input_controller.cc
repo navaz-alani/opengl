@@ -11,6 +11,11 @@ InputController::InputController()
   : m_handleKeyEvents{ false }, m_handleCharEvents{ false }
 { }
 
+InputController::~InputController() {
+  // unbind the controller if it is currently bound
+  if (s_activeController == this) s_activeController = nullptr;
+}
+
 void InputController::keyCallback(
   GLFWwindow* window,
   int key, int scancode, int action, int mods
