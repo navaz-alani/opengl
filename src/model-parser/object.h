@@ -4,11 +4,35 @@
 #include "../buffer/layout.h"
 
 // a 3D coordinate position
-struct position_3d_t { float x, y, z; };
+// TODO: use SIMP instructions
+struct position_3d_t {
+  float x, y, z;
+
+  inline position_3d_t& operator+=(const position_3d_t& rhs) {
+    x += rhs.x; y += rhs.y; z += rhs.z;
+    return *this;
+  }
+
+  inline position_3d_t operator-(const position_3d_t &rhs) {
+    return { x - rhs.x, y - rhs.y, z - rhs.z };
+  }
+
+  inline position_3d_t operator*(const position_3d_t &rhs) {
+    position_3d_t normal;
+    normal.x = y*rhs.z - z*rhs.y;
+    normal.y = z*rhs.x - x*rhs.z;
+    normal.z = x*rhs.y - y*rhs.x;
+    return normal;
+  }
+
+  inline void normalize() {
+    float norm = sqrt(x*x + y*y + z*z);
+    x /= norm; y /= norm; z /= norm;
+  }
+};
+
 // a normal vector
-struct v_normal_t    { float x, y, z; };
-// vertex indices defining a 3D plane
-struct face_t        { unsigned int v0, v1, v2; };
+typedef position_3d_t v_normal_t;
 // a 2D texture coordinate
 struct tex_2d_t      { float x, y; };
 
@@ -20,22 +44,13 @@ struct Object3D {
   std::vector<unsigned int>  vertexIndices;
   std::vector<unsigned int>  texIndices;
   std::vector<unsigned int>  normalIndices;
+
+  void computeNormals();
 };
 
 /*
  * VERTEX AGGREGATION
  */
-
-/*
-// aggregate vertex is a composition of multiple vertex attributes
-class AggregateVertex {
-public:
-  AggregateVertex() = default;
-  virtual ~AggregateVertex() = default;
-
-  virtual BufferLayout getLayout() const = 0;
-};
-*/
 
 // vertex with two attributes - position and texture coordinates
 struct AggVertex_pos_tex {
@@ -49,8 +64,25 @@ public:
   BufferLayout getLayout() const;
 };
 
-// aggregate vertex position and texture coordinate  vectex buffer data from a
+// aggregate vertex position and texture coordinate vertex buffer data from a
 // parsed object
 std::vector<AggVertex_pos_tex> aggregatePosTex(Object3D &obj);
+
+// vertex with two attributes - position and texture coordinates
+struct AggVertex_pos_tex_nor {
+public:
+  position_3d_t m_pos;
+  tex_2d_t      m_tex;
+  v_normal_t    m_nor;
+
+  AggVertex_pos_tex_nor(position_3d_t pos, tex_2d_t tex, v_normal_t nor);
+  ~AggVertex_pos_tex_nor() = default;
+
+  BufferLayout getLayout() const;
+};
+
+// aggregate vertex position, texture coordinate and normal vector vertex buffer
+// data from a parsed object
+std::vector<AggVertex_pos_tex_nor> aggregatePosTexNor(Object3D &obj);
 
 #endif

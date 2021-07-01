@@ -49,29 +49,43 @@ int main(void) {
     return 1;
   }
   log << LoggerState::Info << "object file parsed";
+  model.computeNormals();
+  log << LoggerState::Info << "object normals computed";
 
-  //std::vector<AggVertex_pos_tex> aggregatedVertices = aggregatePosTex(model);
+  std::vector<AggVertex_pos_tex_nor> aggregatedVertices = aggregatePosTexNor(model);
 
   VertexArray rect; rect.Bind();
+  VertexBuffer vbuff{
+    (float *)aggregatedVertices.data(),
+    (unsigned int)(aggregatedVertices.size() * sizeof(AggVertex_pos_tex_nor))
+  }; vbuff.Bind();
+  /*
   VertexBuffer vbuff{
     (float *)model.vertexPositions.data(),
     (unsigned int)(model.vertexPositions.size() * sizeof(position_3d_t))
   }; vbuff.Bind();
+  */
   GLCheckError("vertex buffer");
   log << LoggerState::Info << "vertex buffer setup completed";
 
   BufferLayout layout;
   layout.PushField(3);
+  layout.PushField(2);
+  layout.PushField(3);
 
-  //rect.AddBuffer(vbuff, aggregatedVertices[0].getLayout(), 0);
   rect.AddBuffer(vbuff, layout, 0);
+  //BufferLayout layout;
+  //layout.PushField(3);
+  //rect.AddBuffer(vbuff, layout, 0);
   GLCheckError("vertex array binding");
   log << LoggerState::Info << "vertex array setup completed";
 
+  /*
   IndexBuffer ib{
     (unsigned int *)model.vertexIndices.data(), 
     (unsigned int)model.vertexIndices.size()
   };
+  */
 
   Shader sh{{
     "resources/shaders/basic-vertex-shader.glsl",
@@ -93,6 +107,7 @@ int main(void) {
   float z_rot = 0.0f;
   float dz_rot = 1.0f;
   glm::mat4 proj = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.0f, 50.0f);
+  //glm::mat4 proj = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, -100.0f, 100.0f);
   glm::mat4 view = glm::lookAt(
     glm::vec3(0,4,10), // Camera is at (4,3,3), in World Space
     glm::vec3(0,0,0), // and looks at the origin
@@ -121,8 +136,8 @@ int main(void) {
     sh.setUniform(&u_MVP);
     GLCheckError("uniform updates");
 
-    r.Draw(rect, ib, sh);
-    //r.Draw(rect, aggregatedVertices.size(), sh);
+    //r.Draw(rect, ib, sh);
+    r.Draw(rect, aggregatedVertices.size(), sh);
 
     GLCheckError("draw call error");
 
