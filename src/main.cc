@@ -21,8 +21,8 @@
 #include "chrono/chrono.h"
 #include "logger/logger.h"
 #include "window/window.h"
-#include "model-parser/obj-parser.h"
-#include "model-parser/object.h"
+#include "models/obj-parser.h"
+#include "models/object.h"
 
 struct AppCtx {
   Shader    &sh;
