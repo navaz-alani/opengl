@@ -147,10 +147,22 @@
 // forward declare to prevent include cycle
 class Window;
 
+// Callback is a collection of the data needed to execute a callback by the
+// InputController. In order to avoid hacks to get lambda functions to work
+// (since with captures, a lambda function cannot be converted to a function
+// pointer), the user may use lambda functions without any captures by bundling
+// the state that they need to act on into a "callback context", which is
+// supplied to the callback hander as the first argument.
+template<typename T>
+struct Callback {
+  T     cb_handler;
+  void *cb_context;
+};
+
 // handle keyboard input as key press input
-typedef void(*KeyEventHandler) (int key, int scancode, int action, int mods);
+typedef void(*KeyEventHandler) (void *ctx, int key, int scancode, int action, int mods);
 // handle keyboard input as character input
-typedef void(*CharEventHandler) (unsigned int codepoint);
+typedef void(*CharEventHandler) (void *ctx, unsigned int codepoint);
 
 // InputController is an object which manages input from a single window
 // context.
@@ -167,13 +179,15 @@ typedef void(*CharEventHandler) (unsigned int codepoint);
 // With this change, the callback functions can be made static and they
 // internally refer to the currently active input controller static variable.
 class InputController {
+  // pointer to active controller
   static InputController             *s_activeController;
-
-  bool                                m_handleKeyEvents;
-  bool                                m_handleCharEvents;
-  std::forward_list<KeyEventHandler>  m_keyEventHanlders;
-  std::forward_list<CharEventHandler> m_charEventHandlers;
-
+  // flags indicating whether key and character events are handled
+  bool m_handleKeyEvents;
+  bool m_handleCharEvents;
+  // currently registered callbacks
+  std::forward_list<Callback<KeyEventHandler>>  m_keyEventHanlders;
+  std::forward_list<Callback<CharEventHandler>> m_charEventHandlers;
+  // callback functions which are passed to the window
   static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
   static void charCallback(GLFWwindow* window, unsigned int codepoint);
 
@@ -182,15 +196,22 @@ public:
   InputController();
   ~InputController();
 
-  void setHandleKeyEvents(const bool);  // whether or not to handle key events
-  void setHandleCharEvents(const bool); // whether or not to handle char events
-  void addKeyEventHandler(const KeyEventHandler handler);
-  void removeKeyEventHandler(const KeyEventHandler handler);
-  void addCharEventHandler(const CharEventHandler handler);
-  void removeCharEventHandler(const CharEventHandler handler);
+  // activate / deactivate an input controller instance
 
   void Bind();
   void Unbind();
+
+  // set which events are handled
+
+  void setHandleKeyEvents(const bool);  // whether or not to handle key events
+  void setHandleCharEvents(const bool); // whether or not to handle char events
+
+  // register and de-register callbacks
+
+  void addKeyEventHandler(const KeyEventHandler handler, void *ctx);
+  void removeKeyEventHandler(const KeyEventHandler handler);
+  void addCharEventHandler(const CharEventHandler handler, void *ctx);
+  void removeCharEventHandler(const CharEventHandler handler);
 
   static bool isControllerBound();
   inline static int getScancode(const int key) { return glfwGetKeyScancode(key); }

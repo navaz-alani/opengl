@@ -21,8 +21,8 @@ void InputController::keyCallback(
   int key, int scancode, int action, int mods
 ) {
   if (!s_activeController || !s_activeController->m_handleKeyEvents) return;
-  for (KeyEventHandler handler : s_activeController->m_keyEventHanlders)
-    handler(key, scancode, action, mods);
+  for (Callback<KeyEventHandler> &cb : s_activeController->m_keyEventHanlders)
+    cb.cb_handler(cb.cb_context, key, scancode, action, mods);
 }
 
 void InputController::charCallback(
@@ -30,8 +30,8 @@ void InputController::charCallback(
   unsigned int codepoint
 ) {
   if (!s_activeController || !s_activeController->m_handleCharEvents) return;
-  for (CharEventHandler handler : s_activeController->m_charEventHandlers)
-    handler(codepoint);
+  for (Callback<CharEventHandler> &cb : s_activeController->m_charEventHandlers)
+    cb.cb_handler(cb.cb_context, codepoint);
 }
 
 void InputController::Bind() { s_activeController = this; }
@@ -45,18 +45,22 @@ void InputController::setHandleCharEvents(const bool handleCharEvents) {
   m_handleCharEvents = handleCharEvents;
 }
 
-void InputController::addKeyEventHandler(const KeyEventHandler handler) {
-  m_keyEventHanlders.push_front(handler);
+void InputController::addKeyEventHandler(const KeyEventHandler handler, void *ctx) {
+  m_keyEventHanlders.push_front({ handler, ctx });
 }
 
 void InputController::removeKeyEventHandler(const KeyEventHandler handler) {
-  m_keyEventHanlders.remove(handler);
+  m_keyEventHanlders.remove_if([&](Callback<KeyEventHandler> &cb) {
+    return cb.cb_handler == handler;
+  });
 }
 
-void InputController::addCharEventHandler(const CharEventHandler handler) {
-  m_charEventHandlers.push_front(handler);
+void InputController::addCharEventHandler(const CharEventHandler handler, void *ctx) {
+  m_charEventHandlers.push_front({ handler, ctx });
 }
 
 void InputController::removeCharEventHandler(const CharEventHandler handler) {
-  m_charEventHandlers.remove(handler);
+  m_charEventHandlers.remove_if([&](Callback<CharEventHandler> &cb) {
+    return cb.cb_handler == handler;
+  });
 }
