@@ -13,6 +13,12 @@ static const char *statePrefix[3] = {
 };
 
 class Logger {
+  static const bool m_loggingEnabled =
+#ifdef __NO_LOG__
+  false;
+#else
+  true;
+#endif
   LoggerState m_state;
 
 public:
@@ -24,8 +30,14 @@ public:
 
   // set the state of the logger (sticky)
   Logger &operator<<(LoggerState state);
-  // log a *single* message to the logger, with the state prefix
-  void operator<<(const std::string &msg);
+
+  template<typename T>
+  Logger &operator<<(const T &v) {
+    if (!m_loggingEnabled) return *this;
+    std::ostream &os = (m_state == LoggerState::Error) ? std::cout : std::cerr;
+    os << v;
+    return *this;
+  }
 };
 
 

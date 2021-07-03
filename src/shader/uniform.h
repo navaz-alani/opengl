@@ -5,11 +5,11 @@ class Uniform {
   const char *m_name;
 public:
   Uniform(const char *name) : m_name{ name } {};
-  ~Uniform() = default;
+  virtual ~Uniform() = default;
 
   const char *name() const { return m_name; }
 
-  virtual void setToLocation(const int location = -1) = 0;
+  virtual void setToLocation(const int location = -1) { assert(false); };
 };
 
 #endif

@@ -61,7 +61,7 @@ int setupGLFW() {
   Logger log;
 
   if (!glfwInit()) {
-    log << LoggerState::Error << "failed to initialize GLFW";
+    log << LoggerState::Error << "failed to initialize GLFW\n";
     return -1;
   }
   // 4x antialiasing
@@ -80,19 +80,19 @@ int setupGLFW() {
 
   int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
   if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-    log << LoggerState::Info << "initialized GLFW debug context";
+    log << LoggerState::Info << "initialized GLFW debug context\n";
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
     glDebugMessageCallback(glDebugOutput, nullptr);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
   } else {
-    log << LoggerState::Error << "failed to initialize GLFW debug context";
+    log << LoggerState::Error << "failed to initialize GLFW debug context\n";
   }
 #endif
 
   glewExperimental=true; // Needed in core profile
 
-  log << LoggerState::Info << "initialized GLFW";
+  log << LoggerState::Info << "initialized GLFW\n";
   return 0;
 }
 
@@ -100,19 +100,19 @@ int setupGLEW() {
   Logger log;
 
   if (glewInit() != 0) {
-    log << LoggerState::Error << "failed to initialize GLEW";
+    log << LoggerState::Error << "failed to initialize GLEW\n";
     return 1;
   }
   glewExperimental=true; // Needed in core profile
   glfwSwapInterval(1);   // match monitor refresh rate
   // Ensure we can capture the escape key being pressed below
   //glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-  log << LoggerState::Info << "initialized GLEW";
+  log << LoggerState::Info << "initialized GLEW\n";
 
   const GLubyte* renderer = glGetString(GL_RENDERER); // get renderer string
   const GLubyte* version = glGetString(GL_VERSION);   // version as a string
-  log << LoggerState::Info << std::string("Renderer: ") + (const char *)renderer;
-  log << LoggerState::Info << std::string("OpenGL version supported ") + (const char *)version;
+  log << LoggerState::Info << "Renderer: " << (const char *)renderer << "\n";
+  log << LoggerState::Info << "OpenGL version supported " << (const char *)version << "\n";
 
   return 0;
 }

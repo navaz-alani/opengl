@@ -5,11 +5,9 @@ Logger::Logger()
 {}
 
 Logger &Logger::operator<<(LoggerState state) {
+  if (!m_loggingEnabled) return *this;
   m_state = state;
-  return *this;
-}
-
-void Logger::operator<<(const std::string &msg) {
   std::ostream &os = (m_state == LoggerState::Error) ? std::cout : std::cerr;
-  os << statePrefix[static_cast<int>(m_state)] << msg << "\n";
+  os << statePrefix[static_cast<int>(m_state)];
+  return *this;
 }

@@ -22,7 +22,7 @@ void Status::log(bool errFatal) {
   // we don't log if we don't have a valid message string
   if (!m_logMsg.size()) return;
   Logger log;
-  log << m_type << m_logMsg;
+  log << m_type << m_logMsg << "\n";
   if (m_type == LoggerState::Error && errFatal) exit(1); // treat errors as fatal
 }
 

@@ -39,7 +39,7 @@ int main(void) {
   Window win{ 512, 512, "OpenGL" };
   win.checkInitErr();
   win.makeCurrent();
-  log << LoggerState::Info << "window setup completed";
+  log << LoggerState::Info << "window setup completed\n";
 
   setupGLEW();
   // setup blending
@@ -49,16 +49,18 @@ int main(void) {
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 
+  const std::string objFile = "resources/objects/portal-gum/portalgun.obj";
   ObjParser parser;
-  Object3D model = parser.parse("resources/objects/teapot.obj");
+  Object3D model = parser.parse(objFile);
   if (parser.isParseError()) {
-    log << LoggerState::Error << "object file parse failed";
-    log << LoggerState::Error << parser.getParseError();
+    log << LoggerState::Error
+        << "obj parser: "
+        << parser.getParseError() << "\n";
     return 1;
   }
-  log << LoggerState::Info << "object file parsed";
+  log << LoggerState::Info << "parsed object file " << objFile << "\n";
   model.computeNormals();
-  log << LoggerState::Info << "object normals computed";
+  log << LoggerState::Info << "object normals computed\n";
 
   std::vector<AggVertex_pos_tex_nor> aggregatedVertices = aggregatePosTexNor(model);
 
@@ -69,7 +71,7 @@ int main(void) {
   }; vbuff.Bind();
 
   GLCheckError("vertex buffer");
-  log << LoggerState::Info << "vertex buffer setup completed";
+  log << LoggerState::Info << "vertex buffer setup completed\n";
 
   BufferLayout layout;
   layout.PushField(3);
@@ -78,17 +80,15 @@ int main(void) {
 
   rect.AddBuffer(vbuff, layout, 0);
   GLCheckError("vertex array binding");
-  log << LoggerState::Info << "vertex array setup completed";
+  log << LoggerState::Info << "vertex array setup completed\n";
 
   Shader sh{{
     "resources/shaders/basic-vertex-shader.glsl",
     "resources/shaders/basic-fragment-shader.glsl"
   }}; sh.Bind();
   GLCheckError("shader");
-  log << LoggerState::Info << "shader setup completed";
+  log << LoggerState::Info << "shader setup completed\n";
 
-  float z_rot = 0.0f;
-  float dz_rot = 1.0f;
   glm::mat4 proj = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.0f, 50.0f);
   //glm::mat4 proj = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, -100.0f, 100.0f);
   glm::mat4 view = glm::lookAt(
@@ -97,9 +97,7 @@ int main(void) {
     glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
   );
   glm::mat4 vp = proj * view;
-  // update rotation matrix to make object spin
-  auto mvp = glm::rotate(vp, glm::radians(z_rot), glm::vec3(0.0, 1.0, 0.0));
-  MatrixUniform<glm::mat4> u_MVP{ "u_MVP", 4, mvp };
+  MatrixUniform<glm::mat4> u_MVP{ "u_MVP", 4, vp };
   sh.Bind();
   sh.setUniform(&u_MVP);
   GLCheckError("uniform updates");
@@ -112,6 +110,7 @@ int main(void) {
       if (key == KeyRight)     ctx->z_rot += ctx->dz_rot;
       else if (key == KeyLeft) ctx->z_rot -= ctx->dz_rot;
       else return;
+      // update rotation matrix to make object spin
       auto mvp = glm::rotate(ctx->vp, glm::radians(ctx->z_rot), glm::vec3(0.0, 1.0, 0.0));
       MatrixUniform<glm::mat4> u_MVP{ "u_MVP", 4, mvp };
       ctx->sh.Bind();
@@ -127,7 +126,7 @@ int main(void) {
 
   //sh.setUniforms({ &u_MVP , &u_Texture });
   GLCheckError("setting uniform");
-  log << LoggerState::Info << "uniforms set";
+  log << LoggerState::Info << "uniforms set\n";
 
   // loop
   Renderer r;
@@ -146,9 +145,8 @@ int main(void) {
   }
 
   timer.log("application time");
-  std::cout << frameCount<< " frames rendered\n";
-
-  log << LoggerState::Info << "exiting application";
+  log << LoggerState::Info << frameCount << " frames rendered\n";
+  log << LoggerState::Info << "exiting application\n";
 
   // cleanup
   glfwTerminate();

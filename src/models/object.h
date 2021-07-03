@@ -2,9 +2,9 @@
 #define __OBJECT_H__
 
 #include "../buffer/layout.h"
+#include "material-parser.h"
 
 // a 3D coordinate position
-// TODO: use SIMP instructions
 struct position_3d_t {
   float x, y, z;
 
@@ -44,6 +44,8 @@ struct Object3D {
   std::vector<unsigned int>  vertexIndices;
   std::vector<unsigned int>  texIndices;
   std::vector<unsigned int>  normalIndices;
+  std::vector<Material>      materialPalette;
+  std::string                material;
 
   void computeNormals();
 };

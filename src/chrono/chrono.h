@@ -6,6 +6,8 @@
 #include <iostream>
 #include <iomanip>
 
+#include "../logger/logger.h"
+
 using namespace std::chrono;
 
 // Chrono is a timing object which contains an internal data point containing
@@ -29,10 +31,12 @@ public:
     auto currTime = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(currTime - m_previous);
     m_previous = currTime;
-    std::cout << std::setw(10)
-              << duration.count()
-              << " microseconds | "
-              << msg << "\n";
+    Logger log;
+    log << LoggerState::Info
+        << std::setw(10)
+        << std::to_string(duration.count())
+        << " microseconds | "
+        << msg << "\n";
   }
 };
 
