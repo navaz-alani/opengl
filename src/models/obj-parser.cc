@@ -120,16 +120,18 @@ Object3D ObjParser::parse(const std::string &objFile) {
   }
 
   Logger log;
-  Object3D obj;
+  Object3D obj; obj.boundingBox = { 0 };
   std::string declType{ DECL_INVALID };
   while (objf.good()) {
     objf >> declType;
     if (objf.eof()) break;
     if (declType == DECL_COMMENT)
       parseIgnoreLine(objf);
-    else if (declType == OBJ_DECL_VERTEX)
-      obj.vertexPositions.push_back(parseVertex(objf));
-    else if (declType == OBJ_DECL_FACE)
+    else if (declType == OBJ_DECL_VERTEX) {
+      position_3d_t pos = parseVertex(objf);
+      obj.boundingBox.update(pos);
+      obj.vertexPositions.push_back(pos);
+    } else if (declType == OBJ_DECL_FACE)
       parseFace(objf, obj.vertexIndices, obj.texIndices, obj.normalIndices);
     else if (declType == OBJ_DECL_UV_COORD)
       obj.texCoords.push_back(parseTexCoord(objf));
@@ -149,8 +151,16 @@ Object3D ObjParser::parse(const std::string &objFile) {
       for (auto & mtl : mtls) obj.materialPalette.push_back(mtl);
     } else if (declType == OBJ_DECL_MTL_USE) {
       objf >> obj.material;
-    } else if (declType == OBJ_DECL_MTL_USE  ||
-               declType == OBJ_DECL_OBJ_NAME ||
+      // check if the material exists - if not, we have an error
+      bool materialDefined{ false };
+      for (auto & mat : obj.materialPalette)
+        if (mat.name == obj.material) { materialDefined = true; break; }
+      if (!materialDefined) {
+        m_parseError = true;
+        m_errorMsg = std::string("obj parse error: undefined material ") + obj.material;
+        return emptyObj;
+      }
+    } else if (declType == OBJ_DECL_OBJ_NAME ||
                declType == OBJ_DECL_GRP_NAME ||
                declType == OBJ_DECL_SMOOTH_SHADING) {
       parseIgnoreLine(objf);

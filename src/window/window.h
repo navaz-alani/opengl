@@ -31,9 +31,9 @@ public:
     }
   }
 
-  inline void makeCurrent() { glfwMakeContextCurrent(m_win); }
-  inline bool shouldClose() { return glfwWindowShouldClose(m_win); }
-  inline void swapBuffers() { glfwSwapBuffers(m_win); }
+  inline void makeCurrent() const { glfwMakeContextCurrent(m_win); }
+  inline bool shouldClose() const { return glfwWindowShouldClose(m_win); }
+  inline void swapBuffers() const { glfwSwapBuffers(m_win); }
 
   void setInputController(InputController *ic) {
     m_ic = ic;

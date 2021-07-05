@@ -6,7 +6,10 @@
 class VertexBuffer : public Buffer {
 public:
   VertexBuffer(const void *data, unsigned int size);
+  VertexBuffer();
   ~VertexBuffer() = default;
+
+  void setBufferData(const void*data, unsigned int size);
 };
 
 #endif

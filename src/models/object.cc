@@ -62,6 +62,36 @@ std::vector<AggVertex_pos_tex> aggregatePosTex(Object3D &obj) {
 }
 
 /*
+ * AggVertex_pos_nor implementation
+ */
+
+BufferLayout AggVertex_pos_nor::getLayout() const {
+  BufferLayout layout;
+  layout.PushField(3); // position
+  layout.PushField(3); // normal vector
+  return layout;
+}
+
+AggVertex_pos_nor::AggVertex_pos_nor(position_3d_t pos, v_normal_t nor)
+  : m_pos{ pos }, m_nor{ nor }
+{ }
+
+std::vector<AggVertex_pos_nor> aggregatePosNor(Object3D &obj) {
+  assert(obj.vertexIndices.size() == obj.normalIndices.size());
+  std::vector<AggVertex_pos_nor> aggregated;
+  unsigned int vIdx, nIdx;
+  for (unsigned int i = 0; i < obj.vertexIndices.size(); ++i) {
+    vIdx = accessIdx(obj.vertexIndices, i);
+    nIdx = accessIdx(obj.normalIndices, i);
+    aggregated.push_back({
+      accessIdx(obj.vertexPositions, vIdx),
+      accessIdx(obj.normals, nIdx)
+    });
+  }
+  return aggregated;
+}
+
+/*
  * AggVertex_pos_tex_nor implementation
  */
 
@@ -79,7 +109,7 @@ AggVertex_pos_tex_nor::AggVertex_pos_tex_nor(
 { }
 
 std::vector<AggVertex_pos_tex_nor> aggregatePosTexNor(Object3D &obj) {
-  assert(obj.vertexIndices.size() == obj.normalIndices.size());
+  assert(obj.vertexIndices.size() == obj.normalIndices.size() == obj.texIndices.size());
   std::vector<AggVertex_pos_tex_nor> aggregated;
   unsigned int vIdx, uvIdx, nIdx;
   for (unsigned int i = 0; i < obj.vertexIndices.size(); ++i) {

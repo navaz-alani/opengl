@@ -37,9 +37,7 @@ public:
   }
 
   void setUniforms(std::vector<Uniform *> uniforms) {
-    for (Uniform *u : uniforms) {
-      setUniform(u);
-    }
+    for (Uniform *u : uniforms) setUniform(u);
   }
 };
 

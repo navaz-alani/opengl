@@ -26,6 +26,12 @@ inline std::string parseString(std::istream &in) {
   return str;
 }
 
+inline std::string parseLine(std::istream &in) {
+  std::string line;
+  std::getline(in, line);
+  return line;
+}
+
 inline void parseIgnoreLine(std::istream &in) {
   in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
@@ -72,9 +78,12 @@ std::vector<Material> MtlParser::parse(const std::string &matFile) {
       mat.transparency = parseFloat(matf);
     else if (declType == MTL_DECL_SPECULAR_EXPONENT)
       mat.specularExponent = parseFloat(matf);
+    else if (declType == MTL_DECL_AMBIENT_TX_MAP)
+      mat.ambientTxMap = parseLine(matf);
+    else if (declType == MTL_DECL_DIFFUSE_TX_MAP)
+      mat.diffuseTxMap = parseLine(matf);
     // handle the sunsupported and ignored declarations
     else if (declType == MTL_DECL_ILLUMINATION         ||
-             declType == MTL_DECL_ILLUMINATION         ||
              declType == MTL_DECL_DIFFUSE_TX_MAP       ||
              declType == MTL_DECL_SPECULAR_TX_MAP      ||
              declType == MTL_DECL_SPECULAR_HL_MAP      ||

@@ -1,7 +1,9 @@
 #ifndef __MATERIAL_H__
 #define __MATERIAL_H__
 
+#include <string>
 #include <vector>
+
 #include "../shader/vector_uniform.h"
 
 // material attribute selection bits
@@ -12,6 +14,7 @@ const unsigned char MAT_ATTR_SPECULAR_COLOR      = (0x1 << 0x3);
 const unsigned char MAT_ATTR_SPECULAR_EXPONENT   = (0x1 << 0x4);
 const unsigned char MAT_ATTR_TRANSPARENCY        = (0x1 << 0x5);
 const unsigned char MAT_ATTR_TRANSMISSION_FILTER = (0x1 << 0x6);
+const unsigned char MAT_ATTR_ALL                 = 0b1111111;
 // material property uniform names
 static const char *MAT_UNIF_AMBIENT_COLOR       = "u_AmbientColor";
 static const char *MAT_UNIF_DIFFUSE_COLOR       = "u_DiffuseColor";
@@ -25,6 +28,8 @@ struct rgb_color_t { float r, g, b; };
 
 struct Material {
   std::string name;
+
+  // material attributes
   rgb_color_t ambientColor,
               diffuseColor,
               specularColor,
@@ -32,6 +37,11 @@ struct Material {
   float       opticalDensity,
               transparency,
               specularExponent;
+
+  // texture maps
+  std::string ambientTxMap,
+              diffuseTxMap,
+              specularTxMap;
 
   // returns a vector of uniforms for the attributes which are selected by the
   // attribute selection bits `MAT_ATTR_*`.

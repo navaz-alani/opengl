@@ -24,7 +24,7 @@ static const char *OBJ_DECL_OBJ_NAME       = "o";
 static const char *OBJ_DECL_GRP_NAME       = "g";
 static const char *OBJ_DECL_SMOOTH_SHADING = "s";
 
-const Object3D emptyObj;
+const Object3D emptyObj{};
 
 // ObjParser reads in object files according to the Wavefront specification and
 // returns the parsed Object3D.
