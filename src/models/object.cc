@@ -35,7 +35,7 @@ inline T accessIdx(const std::vector<T> &vec, unsigned int idx) {
  * AggVertex_pos_tex implementation
  */
 
-BufferLayout AggVertex_pos_tex::getLayout() const {
+BufferLayout AggVertex_pos_tex::getLayout() {
   BufferLayout layout;
   layout.PushField(3); // position
   layout.PushField(2); // texture coords
@@ -65,7 +65,7 @@ std::vector<AggVertex_pos_tex> aggregatePosTex(Object3D &obj) {
  * AggVertex_pos_nor implementation
  */
 
-BufferLayout AggVertex_pos_nor::getLayout() const {
+BufferLayout AggVertex_pos_nor::getLayout() {
   BufferLayout layout;
   layout.PushField(3); // position
   layout.PushField(3); // normal vector
@@ -95,7 +95,7 @@ std::vector<AggVertex_pos_nor> aggregatePosNor(Object3D &obj) {
  * AggVertex_pos_tex_nor implementation
  */
 
-BufferLayout AggVertex_pos_tex_nor::getLayout() const {
+BufferLayout AggVertex_pos_tex_nor::getLayout() {
   BufferLayout layout;
   layout.PushField(3); // position
   layout.PushField(2); // texture coords

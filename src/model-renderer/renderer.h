@@ -42,6 +42,14 @@ struct RenderCtx {
   glm::vec3    *cameraOrigin,
                *worldOrigin,
                *lightPos;
+  // renderer input-modifiable state 
+  // rotation
+  float x_rot, dx_rot,
+        y_rot, dy_rot,
+        z_rot, dz_rot;
+  char  curr_axis;
+  // scaling - uniform along all axes
+  float scale, d_scale;
 };
 
 // ModelRenderer is an object which renders a 3D object inputted through an
@@ -62,7 +70,7 @@ class ModelRenderer {
   bool              m_isError;
   std::string       m_errorMsg;
 
-  const Window     *m_win;
+  Window           *m_win;
   const std::string m_objFile;
   Object3D          m_model;
 
@@ -78,7 +86,7 @@ class ModelRenderer {
   void setInitialUniforms(RenderCtx *ctx, const char uniformBits);
 public:
   ModelRenderer(
-    const Window *win,
+    Window *win,
     const std::string objFile,
     const bool computeNormals = true
   );

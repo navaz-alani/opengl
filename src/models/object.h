@@ -81,7 +81,7 @@ public:
   AggVertex_pos_tex(position_3d_t pos, tex_2d_t tex);
   ~AggVertex_pos_tex() = default;
 
-  BufferLayout getLayout() const;
+  static BufferLayout getLayout();
 };
 
 // aggregate vertex position and texture coordinate vertex buffer data from a
@@ -101,7 +101,7 @@ public:
   AggVertex_pos_nor(position_3d_t pos, v_normal_t nor);
   ~AggVertex_pos_nor() = default;
 
-  BufferLayout getLayout() const;
+  static BufferLayout getLayout();
 };
 
 // aggregate vertex position and normal vector vertex buffer data from a parsed
@@ -122,7 +122,7 @@ public:
   AggVertex_pos_tex_nor(position_3d_t pos, tex_2d_t tex, v_normal_t nor);
   ~AggVertex_pos_tex_nor() = default;
 
-  BufferLayout getLayout() const;
+  static BufferLayout getLayout();
 };
 
 // aggregate vertex position, texture coordinate and normal vector vertex buffer

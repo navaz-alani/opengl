@@ -3,7 +3,7 @@
 #include "../errors.h"
 
 ModelRenderer::ModelRenderer(
-  const Window *win,
+  Window *win,
   const std::string objFile,
   const bool computeNormals
 ) : m_win{ win }, m_objFile{ objFile } {
@@ -31,6 +31,7 @@ int ModelRenderer::aggregateVertexData(
   // return since it goes out of scope (and the data has been copied over to GPU
   // buffer).
   va->Bind();
+  vb->Bind();
   if (m_model.texCoords.size() != 0) {
     auto aggregatedData = aggregatePosTexNor(m_model);
     m_log << LoggerState::Info << "aggregated position, texture & normal data\n";
@@ -39,7 +40,7 @@ int ModelRenderer::aggregateVertexData(
       (unsigned int)(aggregatedData.size() * sizeof(AggVertex_pos_tex_nor))
     );
     m_log << LoggerState::Info << "copied vertex data to GPU buffer\n";
-    va->AddBuffer(*vb, aggregatedData[0].getLayout());
+    va->AddBuffer(*vb, AggVertex_pos_tex_nor::getLayout());
     m_log << LoggerState::Info << "setup vertex buffer layout\n";
     *usingTex = true;
     return aggregatedData.size();
@@ -51,7 +52,7 @@ int ModelRenderer::aggregateVertexData(
     (unsigned int)(aggregatedData.size() * sizeof(AggVertex_pos_nor))
   );
   m_log << LoggerState::Info << "copied vertex data to GPU buffer\n";
-  va->AddBuffer(*vb, aggregatedData[0].getLayout());
+  va->AddBuffer(*vb, AggVertex_pos_nor::getLayout());
   m_log << LoggerState::Info << "setup vertex buffer layout\n";
   *usingTex = false;
   return aggregatedData.size();
@@ -59,7 +60,7 @@ int ModelRenderer::aggregateVertexData(
 
 
 /* =============================================================================
- * RENDERING
+ * UNIFORM SETUP
  * =============================================================================
  */
 
@@ -121,6 +122,62 @@ void ModelRenderer::setInitialUniforms(RenderCtx *ctx, const char uniformBits) {
   }
 }
 
+/* =============================================================================
+ * INPUT HANDLING
+ * =============================================================================
+ */
+
+// rotation handler - updates the model matrix uniform in the shader so that the
+// object is rotated
+static KeyEventHandler rotationHandler =
+  [](void *context, int key, int scancode, int action, int mods) {
+    if (action == ActionRelease) return;
+    RenderCtx *ctx = (RenderCtx *)context;
+    switch (key) {
+      case KeyX: { ctx->curr_axis = 'x'; return; }
+      case KeyY: { ctx->curr_axis = 'y'; return; }
+      case KeyZ: { ctx->curr_axis = 'z'; return; }
+    }
+    float *rot, d_rot;
+    glm::vec3 axis{ 0.0f, 0.0f, 0.0f };
+    switch (ctx->curr_axis) {
+      case 'x': { d_rot = ctx->dx_rot; axis.x = 1.0f; break; }
+      case 'y': { d_rot = ctx->dy_rot; axis.y = 1.0f; break; }
+      case 'z': { d_rot = ctx->dz_rot; axis.z = 1.0f; break; }
+      default:  { return; }
+    }
+    if      (key == KeyRight) {}
+    else if (key == KeyLeft)  { d_rot *= -1; }
+    else return;
+    *ctx->mat_model = glm::rotate(*ctx->mat_model, glm::radians(d_rot), axis);
+    MatrixUniform<glm::mat4> u_MatModel{ UNIF_MODEL_MATRIX, 4, *ctx->mat_model };
+    ctx->sh->Bind();
+    ctx->sh->setUniform(&u_MatModel);
+    GLCheckError("uniform updates");
+  };
+
+// zoom handler - updates the model matrix uniform in the shader so that the
+// object is scaled accordingly
+static CharEventHandler zoomHandler =
+  [](void *context, unsigned int codepoint) {
+    RenderCtx *ctx = (RenderCtx *)context;
+    switch (codepoint) {
+      case '+': { ctx->scale += ctx->d_scale; break; }
+      case '-': { ctx->scale -= ctx->d_scale; break; }
+      default:  { return; }
+    }
+    *ctx->mat_model = glm::scale(*ctx->mat_model, {ctx->scale, ctx->scale, ctx->scale});
+    MatrixUniform<glm::mat4> u_MatModel{ UNIF_MODEL_MATRIX, 4, *ctx->mat_model };
+    ctx->sh->Bind();
+    ctx->sh->setUniform(&u_MatModel);
+    GLCheckError("uniform updates");
+  };
+
+/* =============================================================================
+ * RENDERING
+ * =============================================================================
+ */
+
 void ModelRenderer::render() {
   VertexArray  va;
   VertexBuffer vb;
@@ -164,28 +221,26 @@ void ModelRenderer::render() {
   glm::vec3   lightPos     { 1.0f, 1.0f, 1.0f };
   glm::vec3   worldOrigin  { 0.0f, 0.0f, 0.0f };
   glm::vec3   cameraOrigin {
-    m_model.boundingBox.x_max,
-    m_model.boundingBox.y_max,
-    m_model.boundingBox.z_max
+    m_model.boundingBox.x_max + 2.0f,
+    m_model.boundingBox.y_max + 2.0f,
+    m_model.boundingBox.z_max + 2.0f
   };
   // transformation matrices
+  auto winDim = m_win->getDimensions();
+  float aspectRatio{ (float)winDim.width/(float)winDim.height };
   glm::mat4
     matModel{
-      glm::mat4()
+      glm::scale(glm::mat4(1.0f), glm::vec3(0.5f))
     },
     matView{
-      glm::lookAt(cameraOrigin, worldOrigin, {0,0,1})
+      glm::lookAt(cameraOrigin, worldOrigin, {0,1,0})
     },
     matProj{
-      glm::ortho(
-        m_model.boundingBox.x_min - 2.0f,
-        m_model.boundingBox.x_max + 2.0f,
-        m_model.boundingBox.y_min - 2.0f,
-        m_model.boundingBox.y_max + 2.0f,
-        m_model.boundingBox.z_min - 2.0f,
-        m_model.boundingBox.z_max + 2.0f
+      glm::perspective(
+        aspectRatio, glm::radians(45.0f), 1.0f, 100.0f
       )
     };
+  // TODO correct aspect ratio and 
 
   Renderer renderer;
   RenderCtx ctx {
@@ -207,10 +262,23 @@ void ModelRenderer::render() {
     &matProj,
     &cameraOrigin,
     &worldOrigin,
-    &lightPos
+    &lightPos,
+    // renderer state related to input
+    0.0f, 1.0f, //x_rot, dx_rot
+    0.0f, 1.0f, //y_rot, dy_rot
+    0.0f, 1.0f, //z_rot, dz_rot
+    'z',        // curr_axis
+    1.0f, 0.1f  // scale, d_scale
   };
 
   setInitialUniforms(&ctx, B_UNIF_CONSTANTS | B_UNIF_TRANSFORM_MATS);
+  // setup input controller
+  InputController ic;
+  ic.setHandleKeyEvents(true);
+  ic.setHandleCharEvents(true); ic.Bind();
+  ic.addKeyEventHandler(rotationHandler, (void *)(&ctx));
+  ic.addCharEventHandler(zoomHandler,     (void *)(&ctx));
+  m_win->setInputController(&ic);
 
   while (!m_win->shouldClose()) {
     renderer.Clear();

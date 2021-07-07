@@ -7,6 +7,10 @@
 #include "../logger/logger.h"
 #include "input_controller.h"
 
+struct WinDimensions {
+  int width, height;
+};
+
 class Window {
   GLFWwindow      *m_win;
   InputController *m_ic;
@@ -34,6 +38,12 @@ public:
   inline void makeCurrent() const { glfwMakeContextCurrent(m_win); }
   inline bool shouldClose() const { return glfwWindowShouldClose(m_win); }
   inline void swapBuffers() const { glfwSwapBuffers(m_win); }
+
+  inline WinDimensions getDimensions() const {
+    WinDimensions dim;
+    glfwGetWindowSize(m_win, &dim.width, &dim.height);
+    return dim;
+  }
 
   void setInputController(InputController *ic) {
     m_ic = ic;
