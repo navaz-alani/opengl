@@ -5,7 +5,7 @@ LIBS=-lm -L/usr/X11R6/lib -lglfw -lglew
 CXX=g++
 CXXFLAGS=-Wall --std=c++14 -g -MMD -DGL_SILENCE_DEPRECATION
 INCLUDES=-I/usr/X11R6/include -framework OpenGL # -framework Cocoa
-VENDOR=-Iinclude
+VENDOR=-Iinclude $(shell pkg-config --cflags glm glfw3 glew)
 
 SRC_DIR=src
 BUILD_DIR=build
