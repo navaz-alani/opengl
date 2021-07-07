@@ -43,13 +43,14 @@ struct RenderCtx {
                *worldOrigin,
                *lightPos;
   // renderer input-modifiable state 
-  // rotation
-  float x_rot, dx_rot,
-        y_rot, dy_rot,
-        z_rot, dz_rot;
+  // pre axis rotation amounts
+  float dx_rot,
+        dy_rot,
+        dz_rot;
   char  curr_axis;
-  // scaling - uniform along all axes
-  float scale, d_scale;
+  // scale factor (0 <= d_scale <= 1)
+  // uniform along all axes (to preserve normals)
+  float d_scale;
 };
 
 // ModelRenderer is an object which renders a 3D object inputted through an
@@ -58,7 +59,12 @@ struct RenderCtx {
 // object file are also parsed and used in the render process.
 //
 // The renderer's input controller allows the object to be explored by rotating
-// it using the keyboard (TODO rotation controls).
+// and zooming into it using the keyboard.
+// To rotate the model, press 'x', 'y' or 'z' to select an axis of rotation and
+// then the left and right arrow keys to rotate in the selected axis. The
+// default axis of rotation is the z-axis.
+// The model can be zoomed into and out of by sending the '+' and '-' characters
+// through the keyboard.
 //
 // The object makes decisions on how to render the object using the data
 // provided in the object file (and all linked material files).

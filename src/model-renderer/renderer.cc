@@ -138,7 +138,7 @@ static KeyEventHandler rotationHandler =
       case KeyY: { ctx->curr_axis = 'y'; return; }
       case KeyZ: { ctx->curr_axis = 'z'; return; }
     }
-    float *rot, d_rot;
+    float d_rot;
     glm::vec3 axis{ 0.0f, 0.0f, 0.0f };
     switch (ctx->curr_axis) {
       case 'x': { d_rot = ctx->dx_rot; axis.x = 1.0f; break; }
@@ -153,7 +153,7 @@ static KeyEventHandler rotationHandler =
     MatrixUniform<glm::mat4> u_MatModel{ UNIF_MODEL_MATRIX, 4, *ctx->mat_model };
     ctx->sh->Bind();
     ctx->sh->setUniform(&u_MatModel);
-    GLCheckError("uniform updates");
+    GLCheckError("rotation handler uniform updates");
   };
 
 // zoom handler - updates the model matrix uniform in the shader so that the
@@ -161,16 +161,15 @@ static KeyEventHandler rotationHandler =
 static CharEventHandler zoomHandler =
   [](void *context, unsigned int codepoint) {
     RenderCtx *ctx = (RenderCtx *)context;
-    switch (codepoint) {
-      case '+': { ctx->scale += ctx->d_scale; break; }
-      case '-': { ctx->scale -= ctx->d_scale; break; }
-      default:  { return; }
-    }
-    *ctx->mat_model = glm::scale(*ctx->mat_model, {ctx->scale, ctx->scale, ctx->scale});
+    float scale = ctx->d_scale;
+    if      (codepoint == '+') { scale = 1 + scale; }
+    else if (codepoint == '-') { scale = 1 - scale; }
+    else return;
+    *ctx->mat_model = glm::scale(*ctx->mat_model, {scale, scale, scale});
     MatrixUniform<glm::mat4> u_MatModel{ UNIF_MODEL_MATRIX, 4, *ctx->mat_model };
     ctx->sh->Bind();
     ctx->sh->setUniform(&u_MatModel);
-    GLCheckError("uniform updates");
+    GLCheckError("zoom handler uniform updates");
   };
 
 /* =============================================================================
@@ -264,11 +263,11 @@ void ModelRenderer::render() {
     &worldOrigin,
     &lightPos,
     // renderer state related to input
-    0.0f, 1.0f, //x_rot, dx_rot
-    0.0f, 1.0f, //y_rot, dy_rot
-    0.0f, 1.0f, //z_rot, dz_rot
-    'z',        // curr_axis
-    1.0f, 0.1f  // scale, d_scale
+    1.0f, // dx_rot
+    1.0f, // dy_rot
+    1.0f, // dz_rot
+    'z',  // curr_axis
+    0.1f  // d_scale
   };
 
   setInitialUniforms(&ctx, B_UNIF_CONSTANTS | B_UNIF_TRANSFORM_MATS);
